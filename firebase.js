@@ -1,6 +1,6 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
+import { getAnalytics, isSupported } from "firebase/analytics";
 import {getFirestore} from "firebase/firestore";
 
 // TODO: Add SDKs for Firebase products that you want to use
@@ -9,7 +9,7 @@ import {getFirestore} from "firebase/firestore";
 // Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
-  apiKey: "AIzaSyCtsSarzycqlYY8ZGBEYd2wsRINiGRO0xI",
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
   authDomain: "dish-dash-11514.firebaseapp.com",
   projectId: "dish-dash-11514",
   storageBucket: "dish-dash-11514.appspot.com",
@@ -17,7 +17,6 @@ const firebaseConfig = {
   appId: "1:318398720224:web:9ef380f871d54753340885",
   measurementId: "G-ZFV88NTHY5"
 };
-
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
@@ -32,4 +31,4 @@ if (typeof window !== 'undefined') {
   });
 }
 const db = getFirestore(app)
-export {db, analytics}
+export {db, analytics, app};
