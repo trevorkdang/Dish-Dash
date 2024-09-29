@@ -1,101 +1,243 @@
 "use client";
 
-import React, { useState } from 'react';
-import firebase from 'firebase/compat/app';
+import React, { useState } from "react";
+import { GoogleIcon, FacebookIcon } from "../../Components/customicons";
 import {
-    createUserWithEmailAndPassword,
-    onAuthStateChanged,
-    GoogleAuthProvider,
-    FacebookAuthProvider,
-    signInWithPopup,
-    signOut,
-  } from "firebase/auth";
-  import { getAuth } from "firebase/auth";
-import { Box, Container, Typography, Button, TextField } from '@mui/material';
-import { app } from '@/firebase';
+  createUserWithEmailAndPassword,
+  GoogleAuthProvider,
+  FacebookAuthProvider,
+  signInWithPopup,
+} from "firebase/auth";
+import { getAuth } from "firebase/auth";
+import {
+  Box,
+  Typography,
+  Button,
+  TextField,
+  Card,
+  FormControl,
+  FormLabel,
+  Link,
+  Divider,
+} from "@mui/material";
+
+import { app } from "@/firebase";
 
 export default function SignInPage() {
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [error, setError] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
 
-    const auth = getAuth(app);
+  const [emailError, setEmailError] = useState(false);
+  const [emailErrorMessage, setEmailErrorMessage] = useState("");
+  const [passwordError, setPasswordError] = useState(false);
+  const [passwordErrorMessage, setPasswordErrorMessage] = useState("");
+  const [open, setOpen] = useState(false);
 
-    const handleSignUpWithEmail = async (e) => {
-        e.preventDefault();
-        setError('');
-        try {
-            await createUserWithEmailAndPassword(auth, email, password);
-            // Redirect or handle successful login
-            window.location.href = '/'; // Redirect after successful login
-        } catch (err) {
-            setError(err.message);
-        }
-    };
+  const handleClickOpen = () => {
+    setOpen(true);
+  };
 
-    const handleSignUpWithGoogle = async () => {
-        const provider = new GoogleAuthProvider();
-        try {
-            await signInWithPopup(auth, provider);
-            // Redirect or handle successful login
-            window.location.href = '/'; // Redirect after successful login
-        } catch (err) {
-            setError(err.message);
-        }
-    };
+  const handleClose = () => {
+    setOpen(false);
+  };
 
-    const handleSignUpWithFacebook = async () => {
-        const provider = new FacebookAuthProvider();
-        try {
-            await signInWithPopup(auth, provider);
-            // Redirect or handle successful login
-            window.location.href = '/'; // Redirect after successful login
-        } catch (err) {
-            setError(err.message);
-        }
-    };
+  const auth = getAuth(app);
 
-    return (
-        <Box bgcolor="#121212" height="100vh">
-            <Container maxWidth="xs">
-                <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" height="100%">
-                    <Typography variant="h4" gutterBottom sx={{ mt: 4, color: "white", textShadow: "0px 0px 10px #00FF00", fontWeight: "bold" }}>
-                        Sign Up
-                    </Typography>
-                    <form onSubmit={handleSignUpWithEmail}>
-                        <TextField
-                            variant="outlined"
-                            label="Email"
-                            type="email"
-                            fullWidth
-                            margin="normal"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            sx={{ input: { color: "white" }, label: { color: "white" }, borderColor: "#00FF00" }}
-                        />
-                        <TextField
-                            variant="outlined"
-                            label="Password"
-                            type="password"
-                            fullWidth
-                            margin="normal"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            sx={{ input: { color: "white" }, label: { color: "white" }, borderColor: "#00FF00" }}
-                        />
-                        {error && <Typography color="red">{error}</Typography>}
-                        <Button type="submit" variant="contained" color="primary" fullWidth sx={{ bgcolor: "#DB4437", mt: 2, mb: 2}}>
-                            Sign In with Email
-                        </Button>
-                    </form>
-                    <Button onClick={handleSignUpWithGoogle} variant="contained" color="primary" fullWidth sx={{ bgcolor: "#00FF00", mt: 2 }}>
-                        Google
-                    </Button>
-                    <Button onClick={handleSignUpWithFacebook} variant="contained" color="primary" fullWidth sx={{ bgcolor: "#4267B2", mt: 2 }}>
-                        Facebook
-                    </Button>
-                </Box>
-            </Container>
-        </Box>
-    );
+  const handleSignUpWithEmail = async (e) => {
+    e.preventDefault();
+
+    if (!email || !/\S+@\S+\.\S+/.test(email)) {
+      setEmailError(true);
+      setEmailErrorMessage("Please enter a valid email address.");
+      return;
+    } else {
+      setEmailError(false);
+      setEmailErrorMessage("");
+    }
+
+    if (!password || password.length < 6) {
+      setPasswordError(true);
+      setPasswordErrorMessage("Password must be at least 6 characters long.");
+      return
+    } else {
+      setPasswordError(false);
+      setPasswordErrorMessage("");
+    }
+
+    setError("");
+
+    try {
+      await createUserWithEmailAndPassword(auth, email, password);
+      // Redirect or handle successful login
+      window.location.href = "/"; // Redirect after successful login
+    } catch (err) {
+      setError(err.message);
+      console.log(err.code);
+      if (err.code === "auth/email-already-in-use") {
+        alert("Email already in use.");
+      }
+      else if (err.code === "auth/invalid-email") {
+        alert("Invalid email. Please try again.");
+      } 
+      else if (err.code === "auth/weak-password") {
+        alert("Password is too weak. Please try again.");
+      } 
+      else {
+        alert("An error occurred. Please try again.");
+      }
+    }
+  };
+
+  const handleSignUpWithGoogle = async () => {
+    const provider = new GoogleAuthProvider();
+    try {
+      await signInWithPopup(auth, provider);
+      // Redirect or handle successful login
+      window.location.href = "/"; // Redirect after successful login
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
+  const handleSignUpWithFacebook = async () => {
+    const provider = new FacebookAuthProvider();
+    try {
+      await signInWithPopup(auth, provider);
+      // Redirect or handle successful login
+      window.location.href = "/"; // Redirect after successful login
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
+  return (
+    <Box
+      sx={{
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        minHeight: "100vh", // Ensures vertical centering
+        padding: 2,
+      }}
+    >
+      <Box
+        sx={{
+          maxWidth: 400, // Set the desired max width
+          width: "100%", // Ensure it takes up the full width until the max width is reached
+          padding: 3, // Optional padding inside the container
+        }}
+      >
+        <Card>
+          <Typography
+            component="h1"
+            variant="h4"
+            sx={{
+              justifyContent: "center",
+              alignItems: "center",
+              display: "flex",
+              width: "100%",
+              fontSize: "clamp(2rem, 10vw, 2.15rem)",
+            }}
+          >
+            Sign Up
+          </Typography>
+          <Box
+            component="form"
+            onSubmit={handleSignUpWithEmail}
+            noValidate
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              width: "100%",
+              gap: 2,
+            }}
+          >
+            <FormControl>
+              <FormLabel htmlFor="email">Email</FormLabel>
+              <TextField
+                value={email}
+                error={emailError}
+                helperText={emailErrorMessage}
+                id="email"
+                type="email"
+                name="email"
+                placeholder="your@email.com"
+                autoComplete="email"
+                autoFocus
+                required
+                fullWidth
+                variant="outlined"
+                color={emailError ? "error" : "primary"}
+                sx={{ ariaLabel: "email" }}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+            </FormControl>
+            <FormControl>
+              <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+                <FormLabel htmlFor="password">Password</FormLabel>
+              </Box>
+              <TextField
+                value={password}
+                name="password"
+                helperText={passwordErrorMessage}
+                error={passwordError}
+                color={passwordError ? 'error' : 'primary'}
+                placeholder="••••••"
+                type="password"
+                id="password"
+                autoComplete="current-password"
+                autoFocus
+                required
+                fullWidth
+                variant="outlined"
+                onChange={(e) => setPassword(e.target.value)}
+              />
+            </FormControl>
+            <Button
+              type="submit"
+              fullWidth
+              variant="contained"
+              onClick={handleSignUpWithEmail}
+            >
+              Sign up
+            </Button>
+            <Typography sx={{ textAlign: "center" }}>
+              Already have an account?{" "}
+              <span>
+                <Link
+                  href="/sign-in"
+                  variant="body2"
+                  sx={{ alignSelf: "center" }}
+                >
+                  Sign in
+                </Link>
+              </span>
+            </Typography>
+          </Box>
+          <Divider>or</Divider>
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+            <Button
+              type="submit"
+              fullWidth
+              variant="outlined"
+              onClick={handleSignUpWithGoogle}
+              startIcon={<GoogleIcon />}
+            >
+              Sign up with Google
+            </Button>
+            <Button
+              type="submit"
+              fullWidth
+              variant="outlined"
+              onClick={handleSignUpWithFacebook}
+              startIcon={<FacebookIcon />}
+            >
+              Sign up with Facebook
+            </Button>
+          </Box>
+        </Card>
+      </Box>
+    </Box>
+  );
 }
