@@ -21,8 +21,9 @@ import {
   Link,
   Divider,
 } from "@mui/material";
+import { writeBatch, doc, collection } from "firebase/firestore";
 
-import { app } from "@/firebase";
+import { app, db } from "@/firebase";
 
 export default function SignInPage() {
   const [email, setEmail] = useState("");
@@ -42,6 +43,39 @@ export default function SignInPage() {
   };
 
   const auth = getAuth(app);
+
+  // we can change later to make it an API call
+  const addNewUser = async (userInfo, provider) => {
+
+    const displayName = userInfo.displayName ? userInfo.displayName : '';
+    const picURL = userInfo.photoURL ? userInfo.photoURL : '';
+
+    let userDocRef;
+
+    try {
+      const batch = writeBatch(db);
+      if (provider) {
+        userDocRef = doc(collection(db, "users"), userInfo.displayName);
+      } else {
+        // this can be adjusted later if we decide to take input on the user's name
+        userDocRef = doc(collection(db, "users"), userInfo.uid);
+      }
+
+      // adjust user profile data as necessary
+      const newUser = {
+        ID: userInfo.uid,
+        name: displayName,
+        email: userInfo.email,
+        photoURL: picURL,
+      };
+      batch.set(userDocRef, newUser);
+
+      // Commit the batch
+      await batch.commit();
+    } catch (error) {
+      console.error("Error adding user to db:", error);
+    }
+  };
 
   const handleSignInWithEmail = async (e) => {
     e.preventDefault();
@@ -74,24 +108,57 @@ export default function SignInPage() {
   };
 
   const handleSignInWithGoogle = async () => {
-    const provider = new GoogleAuthProvider();
     try {
-      await signInWithPopup(auth, provider);
-      // Redirect or handle successful login
-      window.location.href = "/"; // Redirect after successful login
+      const provider = new GoogleAuthProvider();
+
+      // Await the result of the sign-in popup
+      const result = await signInWithPopup(auth, provider);
+
+      // Get the creation and current timestamp
+      const creationTimestamp = new Date(
+        result.user.metadata.creationTime
+      ).getTime(); // Use .creationTime and convert it to a timestamp
+      const currentTimestamp = Date.now();
+
+      // Check if the user is new based on timestamp difference
+      const isNewUser = currentTimestamp - creationTimestamp < 5000;
+
+      if (isNewUser) {
+        // Await the result of adding the new user to your database
+        await addNewUser(result.user, true);
+      }
+      window.location.href = "/"; // Redirect after successful login (if needed)
     } catch (err) {
+      // Handle errors
       setError(err.message);
     }
   };
 
   const handleSignInWithFacebook = async () => {
-    const provider = new FacebookAuthProvider();
     try {
-      await signInWithPopup(auth, provider);
-      // Redirect or handle successful login
-      window.location.href = "/"; // Redirect after successful login
+      const provider = new FacebookAuthProvider();
+
+      // Await the result of the sign-in popup
+      const result = await signInWithPopup(auth, provider);
+
+      // Get the creation and current timestamp
+      const creationTimestamp = new Date(
+        result.user.metadata.creationTime
+      ).getTime(); // Use .creationTime and convert it to a timestamp
+      const currentTimestamp = Date.now();
+
+      // Check if the user is new based on timestamp difference
+      const isNewUser = currentTimestamp - creationTimestamp < 5000;
+
+      if (isNewUser) {
+        // Await the result of adding the new user to your database
+        await addNewUser(result.user, true);
+      }
+      window.location.href = "/"; // Redirect after successful login (if needed)
     } catch (err) {
+      // Handle errors
       setError(err.message);
+      console.log(err.code);
     }
   };
 

@@ -8,6 +8,7 @@ import {
   FacebookAuthProvider,
   signInWithPopup,
 } from "firebase/auth";
+import { writeBatch, doc, collection } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 import {
   Box,
@@ -21,18 +22,53 @@ import {
   Divider,
 } from "@mui/material";
 
-import { app } from "@/firebase";
+import { app, db } from "@/firebase";
 
-export default function SignInPage() {
+export default function SignUpPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [userInfo, setUserInfo] = useState({});
 
   const [emailError, setEmailError] = useState(false);
   const [emailErrorMessage, setEmailErrorMessage] = useState("");
   const [passwordError, setPasswordError] = useState(false);
   const [passwordErrorMessage, setPasswordErrorMessage] = useState("");
   const [open, setOpen] = useState(false);
+
+
+  // we can change later to make it an API call
+  const addNewUser = async (userInfo, provider) => {
+
+    const displayName = userInfo.displayName ? userInfo.displayName : '';
+    const picURL = userInfo.photoURL ? userInfo.photoURL : '';
+
+    let userDocRef;
+
+    try {
+      const batch = writeBatch(db);
+      if (provider) {
+        userDocRef = doc(collection(db, "users"), userInfo.displayName);
+      } else {
+        // this can be adjusted later if we decide to take input on the user's name
+        userDocRef = doc(collection(db, "users"), userInfo.uid);
+      }
+
+      // adjust user profile data as necessary
+      const newUser = {
+        ID: userInfo.uid,
+        name: displayName,
+        email: userInfo.email,
+        photoURL: picURL,
+      };
+      batch.set(userDocRef, newUser);
+
+      // Commit the batch
+      await batch.commit();
+    } catch (error) {
+      console.error("Error adding user to db:", error);
+    }
+  };
 
   const handleClickOpen = () => {
     setOpen(true);
@@ -59,7 +95,7 @@ export default function SignInPage() {
     if (!password || password.length < 6) {
       setPasswordError(true);
       setPasswordErrorMessage("Password must be at least 6 characters long.");
-      return
+      return;
     } else {
       setPasswordError(false);
       setPasswordErrorMessage("");
@@ -68,46 +104,86 @@ export default function SignInPage() {
     setError("");
 
     try {
-      await createUserWithEmailAndPassword(auth, email, password);
-      // Redirect or handle successful login
+      const result = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+
+      const creationTimestamp = result.user.metadata.createdAt;
+      const currentTimestamp = Date.now();
+      const isNewUser = currentTimestamp - creationTimestamp < 5000;
+      if (isNewUser) {
+        await addNewUser(result.user, false);
+      }
       window.location.href = "/"; // Redirect after successful login
     } catch (err) {
       setError(err.message);
-      console.log(err.code);
+
       if (err.code === "auth/email-already-in-use") {
         alert("Email already in use.");
-      }
-      else if (err.code === "auth/invalid-email") {
+      } else if (err.code === "auth/invalid-email") {
         alert("Invalid email. Please try again.");
-      } 
-      else if (err.code === "auth/weak-password") {
+      } else if (err.code === "auth/weak-password") {
         alert("Password is too weak. Please try again.");
-      } 
-      else {
+      } else {
         alert("An error occurred. Please try again.");
       }
     }
   };
 
   const handleSignUpWithGoogle = async () => {
-    const provider = new GoogleAuthProvider();
     try {
-      await signInWithPopup(auth, provider);
-      // Redirect or handle successful login
-      window.location.href = "/"; // Redirect after successful login
+      const provider = new GoogleAuthProvider();
+
+      // Await the result of the sign-in popup
+      const result = await signInWithPopup(auth, provider);
+
+      // Get the creation and current timestamp
+      const creationTimestamp = new Date(
+        result.user.metadata.creationTime
+      ).getTime(); // Use .creationTime and convert it to a timestamp
+      const currentTimestamp = Date.now();
+
+      // Check if the user is new based on timestamp difference
+      const isNewUser = currentTimestamp - creationTimestamp < 5000;
+
+      if (isNewUser) {
+        // Await the result of adding the new user to your database
+        await addNewUser(result.user, true);
+      }
+      window.location.href = "/"; // Redirect after successful login (if needed)
     } catch (err) {
+      // Handle errors
       setError(err.message);
     }
   };
 
   const handleSignUpWithFacebook = async () => {
-    const provider = new FacebookAuthProvider();
     try {
-      await signInWithPopup(auth, provider);
-      // Redirect or handle successful login
-      window.location.href = "/"; // Redirect after successful login
+      const provider = new FacebookAuthProvider();
+
+      // Await the result of the sign-in popup
+      const result = await signInWithPopup(auth, provider);
+
+      // Get the creation and current timestamp
+      const creationTimestamp = new Date(
+        result.user.metadata.creationTime
+      ).getTime(); // Use .creationTime and convert it to a timestamp
+      const currentTimestamp = Date.now();
+
+      // Check if the user is new based on timestamp difference
+      const isNewUser = currentTimestamp - creationTimestamp < 5000;
+
+      if (isNewUser) {
+        // Await the result of adding the new user to your database
+        await addNewUser(result.user, true);
+      }
+      window.location.href = "/"; // Redirect after successful login (if needed)
     } catch (err) {
+      // Handle errors
       setError(err.message);
+      console.log(err.code);
     }
   };
 
@@ -182,7 +258,7 @@ export default function SignInPage() {
                 name="password"
                 helperText={passwordErrorMessage}
                 error={passwordError}
-                color={passwordError ? 'error' : 'primary'}
+                color={passwordError ? "error" : "primary"}
                 placeholder="••••••"
                 type="password"
                 id="password"
