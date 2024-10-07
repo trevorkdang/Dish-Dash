@@ -13,11 +13,18 @@ import {
   Grid2,
   List,
   ListItem,
+  FormLabel,
+  ToggleButtonGroup,
+  ToggleButton,
   Autocomplete,
+  LinearProgress,
+  ListItemText,
+  IconButton,
 } from "@mui/material";
 
+import RemoveCircleOutlineIcon from "@mui/icons-material/RemoveCircleOutline";
+
 export default function UploadPage() {
-    
   /* Video Variables */
   const [video, setVideo] = useState(null);
   /* Title Variables */
@@ -112,7 +119,7 @@ export default function UploadPage() {
 
       // Validate the time range
       if (timeValue < 1 || timeValue > 720) {
-        const errorMessage = "Time must be between 1 and 720 minutes";
+        const errorMessage = "Time must be 1-720 minutes";
         name === "prepTime"
           ? setPrepTimeError(errorMessage)
           : setCookTimeError(errorMessage);
@@ -154,201 +161,259 @@ export default function UploadPage() {
   };
 
   return (
-    <Box align="center" sx={{ padding: 4, mb: 2 }}>
-      <Typography variant="h4" gutterBottom>
-        Upload Your Recipe Video
+    <Box
+      sx={{
+        padding: 4,
+        mb: 2,
+        backgroundColor: "#f9f9f9",
+        borderRadius: 2,
+        boxShadow: 3,
+        maxWidth: 800, // Set a maximum width for better alignment
+        margin: "auto", // Center the layout
+      }}
+    >
+      <Typography variant="h3" gutterBottom align="center" sx={{ mb: 2 }}>
+        Bring your recipe to the world!
       </Typography>
 
       {/* Video Upload Section */}
-      <Box sx={{ mb: 5 }}>
-        <Typography variant="h5" sx={{ mb: 5 }}>
+      <Box sx={{ mb: 4 }}>
+        <Typography variant="h4" sx={{ mt: 3, mb: 3 }}>
           Upload Video
         </Typography>
         <input
           type="file"
           accept="video/*"
-          onChange={(e) => {
-            console.log("video selected!");
+          style={{
+            width: "100%",
+            fontSize: "16px", // Adjust the font size as needed
+            marginBottom: 16,
           }}
-          style={{ marginBottom: "16px" }}
+          onChange={(e) => console.log("video selected!")}
         />
-        <Button variant="contained" color="primary" sx={{ mr: 2 }}>
+        <Button
+          variant="contained"
+          color="primary"
+          endIcon={
+            <img
+              src="/google-drive.svg"
+              alt="Google Drive"
+              style={{ width: "24px", height: "24px" }}
+            />
+          }
+        >
           Upload from Google Drive
         </Button>
+
+        {/* Display Progress Bar */}
+        <Box alignItems="center" alignContent={"center"} sx={{ mt: 4, mb: 4 }}>
+          <Typography variant="h6" sx={{ mb: 3 }}>
+            Progress Bar
+          </Typography>
+          <LinearProgress variant="determinate" value={50} />
+        </Box>
+
+        {/* Video Preview */}
+        <Box sx={{ mb: 5 }}>
+          <Typography variant="h6" sx={{ mb: 3 }}>
+            Video Preview
+          </Typography>
+          <video
+            src="https://www.w3schools.com/html/mov_bbb.mp4"
+            controls
+            style={{ width: "100%", height: "auto" }}
+          />
+        </Box>
       </Box>
 
-      {/* Recipe Section */}
-      <Box>
-        <Grid2 container direction="column" spacing={3}>
-          {/* Title */}
-          <Grid2 item xs={12}>
-            <TextField
-              label="Title"
-              name="title"
-              value={title}
-              onChange={(e) => handleTitleChange(e)}
-              error={!!titleError}
-              helperText={titleError}
-              fullWidth
-              required
-            />
-          </Grid2>
+      {/* Recipe Form */}
+      <Grid2 direction={"column"} container spacing={3}>
+        <Grid2 item xs={12}>
+          <Typography variant="h4">Recipe Details</Typography>
+        </Grid2>
 
-          {/* Description */}
-          <Grid2 item xs={12}>
-            <TextField
-              label="Description"
-              name="description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              fullWidth
-              multiline
-              required
-            />
-          </Grid2>
+        {/* Title */}
+        <Grid2 item xs={12}>
+          <TextField
+            label="Title"
+            name="title"
+            value={title}
+            onChange={handleTitleChange}
+            error={!!titleError}
+            helperText={titleError}
+            fullWidth
+            required
+          />
+        </Grid2>
 
-          {/* Cuisine */}
-          <Grid2 item xs={12}>
-            <Autocomplete
-              disablePortal
-              options={cuisines}
-              onChange={(event, newValue) => setCuisine(newValue)}
-              renderInput={(params) => (
-                <TextField {...params} required label="Cuisine" />
-              )}
-            />
-          </Grid2>
+        {/* Description */}
+        <Grid2 item xs={12}>
+          <TextField
+            label="Description"
+            name="description"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            fullWidth
+            multiline
+            rows={4}
+          />
+        </Grid2>
 
-          {/* Ingredients */}
-          <Grid2 item xs={12}>
-            {/* Ingredient Name */}
+        {/* Ingredients */}
+        <Grid2 item xs={12}>
+          <Typography variant="h6" sx={{ mb: 2 }}>
+            Ingredients
+          </Typography>
+          <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
             <TextField
               label="Ingredient Name"
-              placeholder="Flour"
               value={ingredientName}
-              onChange={(event) => setIngredientName(event.target.value)}
+              onChange={(e) => setIngredientName(e.target.value)}
               fullWidth
               required
             />
-
-            {/* Input for Amount */}
             <TextField
               label="Amount"
-              placeholder="2 cups"
               value={ingredientAmount}
-              onChange={(event) => setIngredientAmount(event.target.value)}
+              onChange={(e) => setIngredientAmount(e.target.value)}
               fullWidth
               required
             />
-
-            {/* Button to Add Ingredient */}
             <Button
               onClick={() => {
                 if (ingredientName && ingredientAmount) {
-                  // Combine the ingredient name and amount and add to the ingredients list
                   const newIngredient = {
                     name: ingredientName,
                     amount: ingredientAmount,
                   };
-                  setIngredientsList((prevList) => [
-                    ...prevList,
-                    newIngredient,
-                  ]);
-                  // Clear inputs after adding
+                  setIngredientsList((prev) => [...prev, newIngredient]);
                   setIngredientName("");
                   setIngredientAmount("");
                 } else {
                   alert("Please enter both ingredient name and amount.");
                 }
               }}
+              variant="contained"
+              color="primary"
             >
-              Add Ingredient
+              Add
             </Button>
+          </Box>
 
-            {/* Display Ingredients List */}
-            <Typography variant="h6" gutterBottom>
-              Ingredients List
-            </Typography>
-            <Autocomplete
-              multiple
-              options={[]} // No predefined options for the ingredients list
-              slotProps={{ input: { readonly: true } }} // Prevent typing in the input field
-              value={ingredientsList.map(
-                (ingredient) => `${ingredient.amount} ${ingredient.name}`
-              )} // Display the list of added ingredients
-              onChange={(event, newValue) => {
-                // Split the newValue back into ingredient objects
-                const newIngredients = newValue.map((item) => {
-                  const [amount, ...nameParts] = item.split(" ");
-                  const name = nameParts.join(" ");
-                  return { amount, name };
-                });
+          <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
+            {ingredientsList.map((ingredient, index) => (
+              <ListItem
+                key={index}
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  bgcolor: "#f9f9f9",
+                  borderRadius: "4px",
+                  p: 0,
+                  width: "auto", // Adjust the width as necessary
+                }}
+              >
+                <ListItemText
+                  primary={
+                    <span style={{ display: "flex", alignItems: "center" }}>
+                      {`${ingredient.amount} ${ingredient.name}`}
+                      <IconButton
+                        onClick={() =>
+                          setIngredientsList((prev) =>
+                            prev.filter((_, i) => i !== index)
+                          )
+                        }
+                        color="secondary"
+                        sx={{ ml: 1 }} // Margin left for spacing
+                      >
+                        <RemoveCircleOutlineIcon />
+                      </IconButton>
+                    </span>
+                  }
+                  primaryTypographyProps={{ color: "#333" }}
+                />
+              </ListItem>
+            ))}
+          </Box>
+        </Grid2>
 
-                // Update the ingredients list with new values
-                setIngredientsList(newIngredients);
-              }}
-              renderInput={(params) => (
-                <TextField {...params} label="Ingredients List" fullWidth />
-              )}
-              renderOption={() => null} // Disable rendering of any dropdown options
-              noOptionsText="" // Ensure no "No options" message is displayed
-            />
-          </Grid2>
-
-          {/* Instructions */}
-          <Grid2 item xs={12}>
+        {/* Instructions */}
+        <Grid2 item xs={12}>
+          <Typography variant="h6" sx={{ mb: 2 }}>
+            Instructions
+          </Typography>
+          <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
             <TextField
-              label="Instruction Step"
-              placeholder="Preheat the oven..."
               value={instruction}
-              onChange={(e) => setInstruction(e.target.value)} // Update state with input
-              fullWidth
+              onChange={(e) => setInstruction(e.target.value)}
+              placeholder="Preheat oven to 350°F"
+              sx={{ flexGrow: 1, mr: 2 }} // Allowing TextField to grow and margin right for spacing
             />
             <Button
               onClick={() => {
-                setInstructionsList([...instructionsList, instruction]);
-                setInstruction("");
+                if (instruction) {
+                  setInstructionsList((prev) => [...prev, instruction]);
+                  setInstruction("");
+                } else {
+                  alert("Please enter an instruction.");
+                }
               }}
               variant="contained"
               color="primary"
-              sx={{ mt: 2 }}
             >
-              Add Instruction
+              Add
             </Button>
+          </Box>
 
-            <Typography variant="h6" gutterBottom style={{ marginTop: 16 }}>
-              Instructions List
-            </Typography>
+          <List>
+            {instructionsList.map((step, index) => (
+              <ListItem
+                key={index}
+                sx={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  borderBottom: "1px solid #e0e0e0", // Add a subtle bottom border
+                  p: 1, // Add padding for better spacing
+                }}
+              >
+                <ListItemText
+                  primary={`${index + 1}. ${step}`}
+                  primaryTypographyProps={{
+                    fontWeight: "medium",
+                    color: "#333",
+                  }} // Slightly bolder font
+                />
+                <Button
+                  onClick={() =>
+                    setInstructionsList((prev) =>
+                      prev.filter((_, i) => i !== index)
+                    )
+                  }
+                  color="secondary"
+                  variant="outlined" // Use outlined style for the button
+                  sx={{ ml: 2 }} // Add margin left for spacing
+                >
+                  Remove
+                </Button>
+              </ListItem>
+            ))}
+          </List>
+        </Grid2>
 
-            <List>
-              {instructionsList.map((step, index) => (
-                <ListItem key={index}>
-                  <Typography variant="body1">{`${
-                    index + 1
-                  }. ${step}`}</Typography>
-                  <Button
-                    onClick={() => {
-                      setInstructionsList(
-                        instructionsList.filter((_, i) => i !== index)
-                      );
-                    }}
-                    color="secondary"
-                    style={{ marginLeft: 8 }}
-                  >
-                    Remove
-                  </Button>
-                </ListItem>
-              ))}
-            </List>
-          </Grid2>
+        {/* Time & Servings */}
+        <Typography variant="h6" sx={{ mb: -1 }}>
+          Other Details
+        </Typography>
 
+        <Grid2 container spacing={2}>
           {/* Prep Time */}
-          <Grid2 item xs={12}>
+          <Grid2 item xs={12} sm={4}>
             <TextField
               label="Prep Time (minutes)"
               name="prepTime"
               value={prepTime}
-              onChange={(e) => handleTimeChange(e)}
+              onChange={handleTimeChange}
               error={!!prepTimeError}
               helperText={prepTimeError}
               fullWidth
@@ -357,12 +422,12 @@ export default function UploadPage() {
           </Grid2>
 
           {/* Cook Time */}
-          <Grid2 item xs={12}>
+          <Grid2 item xs={12} sm={4}>
             <TextField
               label="Cook Time (minutes)"
               name="cookTime"
               value={cookTime}
-              onChange={(e) => handleTimeChange(e)}
+              onChange={handleTimeChange}
               error={!!cookTimeError}
               helperText={cookTimeError}
               fullWidth
@@ -371,86 +436,161 @@ export default function UploadPage() {
           </Grid2>
 
           {/* Servings */}
-          <Grid2 item xs={12}>
+          <Grid2 item xs={12} sm={4}>
             <TextField
               label="Servings"
               name="servings"
               value={servings}
-              onChange={(e) => handleServingsChange(e)}
+              onChange={handleServingsChange}
               error={!!servingsError}
               helperText={servingsError}
               fullWidth
               required
             />
           </Grid2>
+        </Grid2>
 
-          {/* Tags */}
-          <Grid2 item xs={12}>
-            <Autocomplete
-              freeSolo
-              multiple
-              options={[]} // No predefined options
-              value={tags.map((tag) => tag)} // Display the list of added tags
-              onChange={(event, newValue) => setTags(newValue)} // Update the tags list
-              renderInput={(params) => (
-                <TextField {...params} label="Tags" name="tags" fullWidth />
-              )}
-            />
-          </Grid2>
+        {/* Tags */}
+        <Grid2 item xs={12} sm={6}>
+          <Autocomplete
+            freeSolo
+            multiple
+            options={[]}
+            value={tags}
+            onChange={(event, newValue) => setTags(newValue)}
+            renderInput={(params) => (
+              <TextField {...params} label="Tags" fullWidth />
+            )}
+          />
+        </Grid2>
 
-          {/* Dietary Restrictions */}
-          <Grid2 item xs={12}>
-            <Autocomplete
-              multiple
-              options={dietaryRestrictions}
-              value={restrictions.map((restriction) => restriction)} // Display the list of added restrictions
-              onChange={(event, newValue) => setRestrictions(newValue)} // Update the restrictions list
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  label="Dietary Restrictions"
-                  name="restrictions"
-                  fullWidth
-                />
-              )}
-            />
-          </Grid2>
-
-          {/* Difficulty */}
-          <Grid2 item xs={12}>
-            <FormControl fullWidth required>
-              <InputLabel>Difficulty</InputLabel>
-              <Select
-                name="difficulty"
-                value={difficulty}
-                onChange={(event) => {
-                  setDifficulty(event.target.value);
-                }}
-              >
-                <MenuItem value="Easy">Easy</MenuItem>
-                <MenuItem value="Medium">Medium</MenuItem>
-                <MenuItem value="Hard">Hard</MenuItem>
-              </Select>
-            </FormControl>
-          </Grid2>
-
-          {/* Submit Button */}
-          <Grid2 item xs={12}>
-            <Button
-              variant="contained"
-              color="primary"
-              fullWidth
-              onClick={() => {
-                // Handle submission logic here
-                console.log("Form submitted:");
-                alert("Recipe submitted!"); // Add any further submission logic needed
+        {/* Difficulty */}
+        <Grid2 item xs={12}>
+          <FormControl fullWidth>
+            <FormLabel
+              component="legend"
+              sx={{
+                typography: "h6", // Apply the Typography h6 variant (or another variant)
+                fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif', // Matches the default Typography font
+                color: "text.primary", // Matches the default Typography color
+                mb: 2,
               }}
             >
-              Submit Recipe
-            </Button>
-          </Grid2>
+              Difficulty
+            </FormLabel>
+            <ToggleButtonGroup
+              value={difficulty}
+              exclusive
+              onChange={(event, newValue) => {
+                if (newValue !== null) {
+                  setDifficulty(newValue);
+                }
+              }}
+              sx={{ display: "flex", width: "100%" }} // Ensure the group takes full width
+            >
+              <ToggleButton
+                value="Easy"
+                sx={{
+                  flex: 1,
+                  minWidth: "100px", // Set a minimum width for consistent size
+                  height: "60px", // Set a fixed height
+                  backgroundColor: "green",
+                  color: "white",
+                  transition: "transform 0.2s, background-color 0.2s",
+                  "&:hover": {
+                    backgroundColor: "green", // Keep the same color when hovering
+                    opacity: 0.8, // Optional: Slightly adjust the opacity for visual feedback
+                  },
+                  "&.Mui-selected": {
+                    backgroundColor: "darkgreen", // Keep the same color when selected
+                    color: "white", // Ensure the text color remains white
+                    transform: "scale(1.1)", // Slightly increase size when selected
+                    zIndex: 1, // Ensure the selected button is on top
+                  },
+                  "&.Mui-selected:hover": {
+                    backgroundColor: "darkgreen", // Keep the same color on hover when selected
+                    opacity: 1, // Ensure the color remains consistent
+                  },
+                }}
+              >
+                Easy
+              </ToggleButton>
+
+              <ToggleButton
+                value="Medium"
+                sx={{
+                  flex: 1,
+                  minWidth: "100px", // Set a minimum width for consistent size
+                  height: "60px", // Set a fixed height
+                  backgroundColor: "orange",
+                  color: "white",
+                  transition: "transform 0.2s, background-color 0.2s",
+                  "&:hover": {
+                    backgroundColor: "orange", // Keep the same color when hovering
+                    opacity: 0.8, // Optional: Slightly adjust the opacity for visual feedback
+                  },
+                  "&.Mui-selected": {
+                    backgroundColor: "darkorange", // Keep the same color when selected
+                    color: "white", // Ensure the text color remains white
+                    transform: "scale(1.1)", // Slightly increase size when selected
+                    zIndex: 1, // Ensure the selected button is on top
+                  },
+                  "&.Mui-selected:hover": {
+                    backgroundColor: "darkorange", // Keep the same color on hover when selected
+                    opacity: 1, // Ensure the color remains consistent
+                  },
+                }}
+              >
+                Medium
+              </ToggleButton>
+
+              <ToggleButton
+                value="Hard"
+                sx={{
+                  flex: 1,
+                  minWidth: "100px", // Set a minimum width for consistent size
+                  height: "60px", // Set a fixed height
+                  backgroundColor: "red",
+                  color: "white",
+                  transition: "transform 0.2s, background-color 0.2s",
+                  "&:hover": {
+                    backgroundColor: "red", // Keep the same color when hovering
+                    opacity: 0.8, // Optional: Slightly adjust the opacity for visual feedback
+                  },
+                  "&.Mui-selected": {
+                    backgroundColor: "darkred", // Keep the same color when selected
+                    color: "white", // Ensure the text color remains white
+                    transform: "scale(1.1)", // Slightly increase size when selected
+                    zIndex: 1, // Ensure the selected button is on top
+                  },
+                  "&.Mui-selected:hover": {
+                    backgroundColor: "darkred", // Keep the same color on hover when selected
+                    opacity: 1, // Ensure the color remains consistent
+                  },
+                }}
+              >
+                Hard
+              </ToggleButton>
+            </ToggleButtonGroup>
+          </FormControl>
         </Grid2>
-      </Box>
+
+        {/* Submit Button */}
+        <Grid2 item xs={12}>
+          <Button
+            variant="contained"
+            color="primary"
+            fullWidth
+            onClick={() => {
+              // Handle submission logic
+              console.log("Form submitted!");
+              alert("Recipe submitted!"); // Replace with actual logic
+            }}
+          >
+            Submit Recipe
+          </Button>
+        </Grid2>
+      </Grid2>
     </Box>
   );
 }
