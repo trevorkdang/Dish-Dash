@@ -21,12 +21,13 @@ import {
   ListItemText,
   IconButton,
 } from "@mui/material";
+import useDrivePicker from "react-google-drive-picker";
 
 import RemoveCircleOutlineIcon from "@mui/icons-material/RemoveCircleOutline";
 
 export default function UploadPage() {
   /* Video Variables */
-  const [video, setVideo] = useState(null);
+  const [video, setVideo] = useState({});
   /* Title Variables */
   const [title, setTitle] = useState("");
   const [titleError, setTitleError] = useState("");
@@ -81,6 +82,36 @@ export default function UploadPage() {
     "Keto",
     "Diabetic-Friendly",
   ];
+
+  /* Functions to handle video upload */
+  const [openPicker, authResponse] = useDrivePicker();
+
+  const handleOpenPicker = () => {
+    openPicker({
+      clientId: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID,
+      developerKey: process.env.NEXT_PUBLIC_GOOGLE_API_KEY,
+      viewId: "DOCS_VIDEOS", // Keep this to view videos
+      showUploadView: true,
+      showUploadFolders: true,
+      supportDrives: true,
+      multiselect: false,
+      callbackFunction: (data) => {
+        pickerCallback(data);
+      },
+    });
+  };
+
+  const pickerCallback = (data) => {
+    if (
+      data[window.google.picker.Response.ACTION] ===
+      window.google.picker.Action.PICKED
+    ) {
+      // Extract selected file information
+      const video = data[window.google.picker.Response.DOCUMENTS][0]; // Get the first selected file
+      console.log("Picked file:", video); // Log the selected file info
+      setVideo({ source: "google-drive", file: video }); // Set the selected video
+    }
+  };
 
   /* Functions to handle title validation */
   const handleTitleChange = (e) => {
@@ -189,11 +220,14 @@ export default function UploadPage() {
             fontSize: "16px", // Adjust the font size as needed
             marginBottom: 16,
           }}
-          onChange={(e) => console.log("video selected!")}
+          onChange={(e) =>
+            setVideo({ source: "local", file: e.target.files[0] })
+          }
         />
         <Button
           variant="contained"
           color="primary"
+          onClick={() => handleOpenPicker()}
           endIcon={
             <img
               src="/google-drive.svg"
