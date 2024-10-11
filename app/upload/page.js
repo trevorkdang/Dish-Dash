@@ -22,10 +22,14 @@ import {
   IconButton,
 } from "@mui/material";
 import useDrivePicker from "react-google-drive-picker";
-
 import RemoveCircleOutlineIcon from "@mui/icons-material/RemoveCircleOutline";
+import { app, db } from "@/firebase";
+import { writeBatch, doc, collection } from "firebase/firestore";
 
 export default function UploadPage() {
+  /* User Info */
+  const userID = "user_001"; // demo
+  const displayName = "Chef John"; // demo
   /* Video Variables */
   const [video, setVideo] = useState({});
   /* Title Variables */
@@ -82,6 +86,160 @@ export default function UploadPage() {
     "Keto",
     "Diabetic-Friendly",
   ];
+
+  /* Function to upload form to DB*/
+  const generateRandomId = async (length = 8) => {
+    return Math.random()
+      .toString(36)
+      .slice(2, 2 + length);
+  };
+
+  const uploadVideo = async () => {
+    /*
+    {
+  "_id": "video_001", // generate randomID
+  "title": "How to Make Homemade Pasta", //inputed by user
+  "description": "A step-by-step guide to making fresh pasta from scratch.", //inputed by yser
+  "creator": {
+    "user_id": "user_001", // get from auth
+    "name": "chefJohn" // get from auth
+  },
+  "video_url": "https://cdn.example.com/videos/homemade_pasta.mp4", // get from video file
+  "thumbnail_url": "https://cdn.example.com/videos/thumbnails/pasta.jpg", // get from mux
+  "tags": ["pasta", "Italian", "cooking", "vegetarian"],  // inputed by user
+  "cuisine": "Italian", //inputed by user
+  "dietary_restrictions": ["vegetarian"],  // inputed by user
+  "difficulty": "medium", //inputed by user
+  "views": 2345, // default to 0
+  "likes": 345, // default to 0
+  "dislikes": 12, // default to 0
+  "comments": [ // default to empty array
+    {
+      "comment_id": "comment_001",
+      "user_id": "user_002",
+      "username": "homecook123",
+      "text": "Tried this recipe and it came out perfect!",
+      "timestamp": "2024-09-23T12:34:56"
+    }
+  ],
+  "average_rating": 4.8, // default to 0
+  "ratings_count": 120, // default to 0
+  "prep_time": "10 minutes",  // inputed by user
+  "cook_time": "20 minutes",  // inputed by user
+  "total_time": "30 minutes"   // inputed by user
+}
+      */
+    try {
+      const batch = writeBatch(db);
+      const videoId = await generateRandomId();
+      const videoDocRef = doc(collection(db, "videos"), videoId);
+
+      const newVideo = {
+        id: videoId,
+        title: title,
+        description: description,
+        creator: {
+          user_id: userID,
+          name: displayName,
+        },
+        video_url: "video_url", // get from video file
+        thumbnail_url: "thumbnail_url", // get from mux
+        tags: tags,
+        cuisine: cuisine,
+        dietary_restrictions: restrictions,
+        difficulty: difficulty,
+        views: 0,
+        likes: 0,
+        dislikes: 0,
+        comments: [],
+        average_rating: 0,
+        ratings_count: 0,
+        total_time: prepTime + cookTime,
+      };
+      batch.set(videoDocRef, newVideo);
+
+      await batch.commit();
+    } catch (error) {
+      console.error("Error adding video to db:", error);
+    }
+  };
+
+  const uploadRecipe = async () => {
+    /*
+    {
+  "_id": "recipe_001", // generate randomID
+  "title": "Vegetarian Lasagna", //inputed by user
+  "description": "A delicious lasagna recipe packed with vegetables and cheese.", //inputed by user
+  "creator": { // get from auth
+    "user_id": "user_002",
+    "name": "homecook123"
+  },
+  "ingredients": [ // inputed by user
+    { "name": "lasagna noodles", "quantity": "12 sheets" },
+    { "name": "ricotta cheese", "quantity": "2 cups" },
+    { "name": "zucchini", "quantity": "2 cups, sliced" },
+    { "name": "marinara sauce", "quantity": "3 cups" }
+  ],
+  "instructions": [ // inputed by user
+    "Preheat oven to 375°F (190°C).",
+    "Cook the lasagna noodles according to package instructions.",
+    "Layer noodles, ricotta cheese, zucchini, and marinara sauce in a baking dish.",
+    "Bake for 35 minutes until bubbly."
+  ],
+  "prep_time": "15 minutes",  // inputed by user
+  "cook_time": "35 minutes", // inputed by user
+  "total_time": "50 minutes", // inputed by user
+  "servings": 6, // inputed by user
+  "tags": ["vegetarian", "lasagna", "Italian"], // inputed by user
+  "cuisine": "Italian", // inputed by user
+  "difficulty": "medium", // inputed by user
+  "comments": [ // default to empty array
+    {
+      "comment_id": "comment_003",
+      "user_id": "user_005",
+      "username": "veggieMaster",
+      "text": "Loved the recipe! Added some mushrooms for extra flavor.",
+      "timestamp": "2024-09-23T15:45:21"
+    }
+  ],
+  "average_rating": 4.5, // default to 0
+  "ratings_count": 85 // default to 0
+}
+      */
+    try {
+      const batch = writeBatch(db);
+      const recipeId = await generateRandomId();
+      const recipeDocRef = doc(collection(db, "recipes"), recipeId);
+
+      const newRecipe= {
+        id: recipeId,
+        title: title,
+        description: description,
+        creator: {
+          user_id: userID,
+          name: displayName,
+        },
+        ingredients: ingredientsList,
+        instructions: instructionsList,
+        prep_time: prepTime,
+        cook_time: cookTime,
+        total_time: prepTime + cookTime,
+        servings: servings,
+        tags: tags,
+        cuisine: cuisine,
+        dietary_restrictions: restrictions,
+        difficulty: difficulty,
+        comments: [],
+        average_rating: 0,
+        ratings_count: 0,
+      };
+      batch.set(videoDocRef, newVideo);
+
+      await batch.commit();
+    } catch (error) {
+      console.error("Error adding video to db:", error);
+    }
+  };
 
   /* Functions to handle video upload */
   const [openPicker, authResponse] = useDrivePicker();
