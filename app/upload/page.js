@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, use } from "react";
 import {
   TextField,
   Button,
@@ -20,16 +20,20 @@ import {
   LinearProgress,
   ListItemText,
   IconButton,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  Fade,
 } from "@mui/material";
 import useDrivePicker from "react-google-drive-picker";
 import RemoveCircleOutlineIcon from "@mui/icons-material/RemoveCircleOutline";
-import { app, db } from "@/firebase";
+import { app, db, auth } from "@/firebase";
 import { writeBatch, doc, collection } from "firebase/firestore";
 
 export default function UploadPage() {
   /* User Info */
-  const userID = "user_001"; // demo
-  const displayName = "Chef John"; // demo
+  const user = auth.currentUser;
   /* Video Variables */
   const [video, setVideo] = useState({});
   /* Title Variables */
@@ -47,10 +51,10 @@ export default function UploadPage() {
   const [instruction, setInstruction] = useState("");
   const [instructionsList, setInstructionsList] = useState([]);
   /* Prep Time Variables */
-  const [prepTime, setPrepTime] = useState(1);
+  const [prepTime, setPrepTime] = useState(10);
   const [prepTimeError, setPrepTimeError] = useState("");
   /* Cook Time Variables */
-  const [cookTime, setCookTime] = useState(1);
+  const [cookTime, setCookTime] = useState(30);
   const [cookTimeError, setCookTimeError] = useState("");
   /* Serving Variables */
   const [servings, setServings] = useState(1);
@@ -61,6 +65,9 @@ export default function UploadPage() {
   const [restrictions, setRestrictions] = useState([]);
   /* Difficulty Variables */
   const [difficulty, setDifficulty] = useState("Medium");
+
+  /* Submission Dialog */
+  const [openDialog, setOpenDialog] = useState(false);
 
   const cuisines = [
     "American",
@@ -95,44 +102,14 @@ export default function UploadPage() {
   };
 
   const uploadVideo = async () => {
-    /*
-    {
-  "_id": "video_001", // generate randomID
-  "title": "How to Make Homemade Pasta", //inputed by user
-  "description": "A step-by-step guide to making fresh pasta from scratch.", //inputed by yser
-  "creator": {
-    "user_id": "user_001", // get from auth
-    "name": "chefJohn" // get from auth
-  },
-  "video_url": "https://cdn.example.com/videos/homemade_pasta.mp4", // get from video file
-  "thumbnail_url": "https://cdn.example.com/videos/thumbnails/pasta.jpg", // get from mux
-  "tags": ["pasta", "Italian", "cooking", "vegetarian"],  // inputed by user
-  "cuisine": "Italian", //inputed by user
-  "dietary_restrictions": ["vegetarian"],  // inputed by user
-  "difficulty": "medium", //inputed by user
-  "views": 2345, // default to 0
-  "likes": 345, // default to 0
-  "dislikes": 12, // default to 0
-  "comments": [ // default to empty array
-    {
-      "comment_id": "comment_001",
-      "user_id": "user_002",
-      "username": "homecook123",
-      "text": "Tried this recipe and it came out perfect!",
-      "timestamp": "2024-09-23T12:34:56"
-    }
-  ],
-  "average_rating": 4.8, // default to 0
-  "ratings_count": 120, // default to 0
-  "prep_time": "10 minutes",  // inputed by user
-  "cook_time": "20 minutes",  // inputed by user
-  "total_time": "30 minutes"   // inputed by user
-}
-      */
+    const userID = user ? user.uid : "";
+    const displayName = user ? user.displayName : "";
+    const lastName = displayName ? displayName.split(" ").pop() : "";
+
     try {
       const batch = writeBatch(db);
       const videoId = await generateRandomId();
-      const videoDocRef = doc(collection(db, "videos"), videoId);
+      const videoDocRef = doc(collection(db, "videos"), lastName + " " + title);
 
       const newVideo = {
         id: videoId,
@@ -165,53 +142,19 @@ export default function UploadPage() {
   };
 
   const uploadRecipe = async () => {
-    /*
-    {
-  "_id": "recipe_001", // generate randomID
-  "title": "Vegetarian Lasagna", //inputed by user
-  "description": "A delicious lasagna recipe packed with vegetables and cheese.", //inputed by user
-  "creator": { // get from auth
-    "user_id": "user_002",
-    "name": "homecook123"
-  },
-  "ingredients": [ // inputed by user
-    { "name": "lasagna noodles", "quantity": "12 sheets" },
-    { "name": "ricotta cheese", "quantity": "2 cups" },
-    { "name": "zucchini", "quantity": "2 cups, sliced" },
-    { "name": "marinara sauce", "quantity": "3 cups" }
-  ],
-  "instructions": [ // inputed by user
-    "Preheat oven to 375°F (190°C).",
-    "Cook the lasagna noodles according to package instructions.",
-    "Layer noodles, ricotta cheese, zucchini, and marinara sauce in a baking dish.",
-    "Bake for 35 minutes until bubbly."
-  ],
-  "prep_time": "15 minutes",  // inputed by user
-  "cook_time": "35 minutes", // inputed by user
-  "total_time": "50 minutes", // inputed by user
-  "servings": 6, // inputed by user
-  "tags": ["vegetarian", "lasagna", "Italian"], // inputed by user
-  "cuisine": "Italian", // inputed by user
-  "difficulty": "medium", // inputed by user
-  "comments": [ // default to empty array
-    {
-      "comment_id": "comment_003",
-      "user_id": "user_005",
-      "username": "veggieMaster",
-      "text": "Loved the recipe! Added some mushrooms for extra flavor.",
-      "timestamp": "2024-09-23T15:45:21"
-    }
-  ],
-  "average_rating": 4.5, // default to 0
-  "ratings_count": 85 // default to 0
-}
-      */
+    const userID = user ? user.uid : "";
+    const displayName = user ? user.displayName : "";
+    const lastName = displayName ? displayName.split(" ").pop() : "";
+
     try {
       const batch = writeBatch(db);
       const recipeId = await generateRandomId();
-      const recipeDocRef = doc(collection(db, "recipes"), recipeId);
+      const recipeDocRef = doc(
+        collection(db, "recipes"),
+        lastName + " " + title
+      );
 
-      const newRecipe= {
+      const newRecipe = {
         id: recipeId,
         title: title,
         description: description,
@@ -233,12 +176,63 @@ export default function UploadPage() {
         average_rating: 0,
         ratings_count: 0,
       };
-      batch.set(videoDocRef, newVideo);
+      batch.set(recipeDocRef, newRecipe);
 
       await batch.commit();
     } catch (error) {
-      console.error("Error adding video to db:", error);
+      console.error("Error adding recipe to db:", error);
     }
+  };
+
+  const submitForm = async () => {
+    // if (!video) {
+    //   alert("Please upload a video for your recipe.");
+    //   return;
+    // }
+
+    if (!title) {
+      alert("Please enter a title for your recipe.");
+      return;
+    }
+
+    if (!cuisine) {
+      alert("Please select a cuisine for your recipe.");
+      return;
+    }
+
+    if (ingredientsList.length === 0) {
+      alert("Please add ingredients to your recipe.");
+      return;
+    }
+
+    if (instructionsList.length === 0) {
+      alert("Please add instructions to your recipe.");
+      return;
+    }
+
+    if (prepTime === "") {
+      alert("Please enter a prep time for your recipe.");
+      return;
+    }
+
+    if (cookTime === "") {
+      alert("Please enter a cook time for your recipe.");
+      return;
+    }
+
+    if (servings === "") {
+      alert("Please enter the number of servings for your recipe.");
+      return;
+    }
+
+    Promise.all([uploadVideo(), uploadRecipe()])
+      .then(() => {
+        console.log("Both uploads completed successfully.");
+        setOpenDialog(true);
+      })
+      .catch((error) => {
+        console.error("An error occurred during uploads:", error.message);
+      });
   };
 
   /* Functions to handle video upload */
@@ -349,6 +343,15 @@ export default function UploadPage() {
     }
   };
 
+  const handleCloseDialog = () => {
+    setOpenDialog(false);
+  };
+
+  const handleVideoView = () => {
+    // Redirect to the video page
+    setOpenDialog(false);
+  };
+
   return (
     <Box
       sx={{
@@ -361,7 +364,7 @@ export default function UploadPage() {
         margin: "auto", // Center the layout
       }}
     >
-      <Typography variant="h3" gutterBottom align="center" sx={{ mb: 2 }}>
+      <Typography variant="h3" gutterBottom align="center" sx={{ mb: 6 }}>
         Bring your recipe to the world!
       </Typography>
 
@@ -370,32 +373,48 @@ export default function UploadPage() {
         <Typography variant="h4" sx={{ mt: 3, mb: 3 }}>
           Upload Video
         </Typography>
-        <input
-          type="file"
-          accept="video/*"
-          style={{
-            width: "100%",
-            fontSize: "16px", // Adjust the font size as needed
-            marginBottom: 16,
+        <Box
+          sx={{
+            mb: 4,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
           }}
-          onChange={(e) =>
-            setVideo({ source: "local", file: e.target.files[0] })
-          }
-        />
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={() => handleOpenPicker()}
-          endIcon={
-            <img
-              src="/google-drive.svg"
-              alt="Google Drive"
-              style={{ width: "24px", height: "24px" }}
-            />
-          }
         >
-          Upload from Google Drive
-        </Button>
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              mb: 2,
+            }}
+          >
+            <input
+              type="file"
+              accept="video/*"
+              style={{
+                flex: 1,
+                fontSize: "16px",
+                marginRight: 4,
+                maxWidth: "300px",
+              }}
+            />
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={() => handleOpenPicker()}
+              endIcon={
+                <img
+                  src="/google-drive.svg"
+                  alt="Google Drive"
+                  style={{ width: "24px", height: "24px" }}
+                />
+              }
+            >
+              Upload from Google Drive
+            </Button>
+          </Box>
+        </Box>
 
         {/* Display Progress Bar */}
         <Box alignItems="center" alignContent={"center"} sx={{ mt: 4, mb: 4 }}>
@@ -421,7 +440,7 @@ export default function UploadPage() {
       {/* Recipe Form */}
       <Grid2 direction={"column"} container spacing={3}>
         <Grid2 item xs={12}>
-          <Typography variant="h4">Recipe Details</Typography>
+          <Typography variant="h4">Recipe</Typography>
         </Grid2>
 
         {/* Title */}
@@ -451,6 +470,33 @@ export default function UploadPage() {
           />
         </Grid2>
 
+        {/* Cuisine */}
+        <Grid2 item xs={12}>
+          <Typography variant="h6" sx={{ mb: 2 }}>
+            Cuisine
+          </Typography>
+          <FormControl fullWidth>
+            <Autocomplete
+              id="cuisine"
+              options={cuisines}
+              value={cuisine}
+              onChange={(event, newValue) => {
+                setCuisine(newValue);
+              }}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label="Cuisine"
+                  variant="outlined"
+                  required
+                  fullWidth
+                />
+              )}
+              fullWidth
+            />
+          </FormControl>
+        </Grid2>
+
         {/* Ingredients */}
         <Grid2 item xs={12}>
           <Typography variant="h6" sx={{ mb: 2 }}>
@@ -458,7 +504,8 @@ export default function UploadPage() {
           </Typography>
           <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
             <TextField
-              label="Ingredient Name"
+              label="Name"
+              placeholder="Flour"
               value={ingredientName}
               onChange={(e) => setIngredientName(e.target.value)}
               fullWidth
@@ -466,6 +513,7 @@ export default function UploadPage() {
             />
             <TextField
               label="Amount"
+              placeholder="2 cups"
               value={ingredientAmount}
               onChange={(e) => setIngredientAmount(e.target.value)}
               fullWidth
@@ -534,9 +582,11 @@ export default function UploadPage() {
           <Typography variant="h6" sx={{ mb: 2 }}>
             Instructions
           </Typography>
-          <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
+          <Box sx={{ display: "flex", alignItems: "center" }}>
             <TextField
               value={instruction}
+              label="Instruction"
+              required
               onChange={(e) => setInstruction(e.target.value)}
               placeholder="Preheat oven to 350°F"
               sx={{ flexGrow: 1, mr: 2 }} // Allowing TextField to grow and margin right for spacing
@@ -591,6 +641,33 @@ export default function UploadPage() {
               </ListItem>
             ))}
           </List>
+        </Grid2>
+
+        {/* Dietary Restrictions */}
+        <Grid2 item xs={12}>
+          <Typography variant="h6" sx={{ mb: 2 }}>
+            Dietary Restrictions
+          </Typography>
+          <FormControl fullWidth>
+            <Autocomplete
+              id="dietary restrictions"
+              options={dietaryRestrictions}
+              multiple
+              value={restrictions}
+              onChange={(event, newValue) => {
+                setRestrictions(newValue);
+              }}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label="Dietary Restrictions"
+                  variant="outlined"
+                  fullWidth
+                />
+              )}
+              fullWidth
+            />
+          </FormControl>
         </Grid2>
 
         {/* Time & Servings */}
@@ -774,15 +851,55 @@ export default function UploadPage() {
             color="primary"
             fullWidth
             onClick={() => {
-              // Handle submission logic
-              console.log("Form submitted!");
-              alert("Recipe submitted!"); // Replace with actual logic
+              submitForm();
             }}
           >
-            Submit Recipe
+            Upload
           </Button>
         </Grid2>
       </Grid2>
+
+      {/* Submission Dialog */}
+      <Dialog
+        open={openDialog}
+        onClose={handleCloseDialog}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle style={{ textAlign: "center", fontWeight: "bold" }}>
+          🎉 Video Uploaded Successfully!
+        </DialogTitle>
+        <DialogContent>
+          <div style={{ textAlign: "center", padding: "10px 20px", mb: 5 }}>
+            <p style={{ fontSize: "1.1em", fontWeight: "500" }}>
+              Your submission was successful!
+            </p>
+            <p style={{ fontSize: "1em", color: "#555", fontWeight: "400" }}>
+              What would you like to do next?
+            </p>
+          </div>
+        </DialogContent>
+        <DialogActions style={{ justifyContent: "center" }}>
+          <Button
+            onClick={handleVideoView}
+            variant="contained"
+            color="primary"
+            style={{ margin: "0 10px" }}
+          >
+            View Video
+          </Button>
+          <Button
+            onClick={() => {
+              window.location.href = "/";
+            }}
+            variant="outlined"
+            color="secondary"
+            style={{ margin: "0 10px" }}
+          >
+            Go to Home Page
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }
