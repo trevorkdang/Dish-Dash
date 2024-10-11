@@ -9,7 +9,6 @@ import {
   signInWithPopup,
 } from "firebase/auth";
 import { writeBatch, doc, collection } from "firebase/firestore";
-import { getAuth } from "firebase/auth";
 import {
   Box,
   Typography,
@@ -23,7 +22,7 @@ import {
 } from "@mui/material";
 import { updateProfile } from "firebase/auth";
 
-import { app, db } from "@/firebase";
+import { app, db, auth} from "@/firebase";
 
 export default function SignUpPage() {
   const [email, setEmail] = useState("");
@@ -81,8 +80,6 @@ export default function SignUpPage() {
   const handleClose = () => {
     setOpen(false);
   };
-
-  const auth = getAuth(app);
 
   const handleSignUpWithEmail = async (e) => {
     e.preventDefault();
@@ -240,7 +237,7 @@ export default function SignUpPage() {
         }
       }
       // Redirect after successful login (if needed)
-      //window.location.href = "/";
+      window.location.href = "/";
     } catch (err) {
       // Handle any errors that might occur during the process
       setError(err.message);
