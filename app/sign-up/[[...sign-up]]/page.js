@@ -21,6 +21,7 @@ import {
   Link,
   Divider,
 } from "@mui/material";
+import { updateProfile } from "firebase/auth";
 
 import { app, db } from "@/firebase";
 
@@ -46,7 +47,9 @@ export default function SignUpPage() {
     const displayName = signUpWithProvider
       ? userInfo.displayName
       : firstName + " " + lastName;
-    const picURL = signUpWithProvider ? userInfo.photoURL : "";
+    const picURL = signUpWithProvider
+      ? userInfo.photoURL
+      : "https://www.gravatar.com/avatar/?d=mp";
 
     let userDocRef;
 
@@ -156,7 +159,6 @@ export default function SignUpPage() {
       if (isNewUser) {
         // Await the result of adding the new user to your database
         //await addNewUser(result.user, true);
-        console.log("new userrrr with google");
         setUserCreated(true);
         setSignUpWithProvider(true);
         setUserInfo(result.user);
@@ -219,10 +221,26 @@ export default function SignUpPage() {
     }
 
     try {
+      const user = auth.currentUser;
       // Proceed with adding the new user to your database
       await addNewUser();
+      if (!signUpWithProvider) {
+        // Update the user's display name if not signing up with a provider
+        if (user) {
+          updateProfile(user, {
+            displayName: firstName + " " + lastName, // Change display name
+            photoURL: "https://www.gravatar.com/avatar/?d=mp" // Default profile pic
+          })
+            .then(() => {
+              console.log("Profile updated successfully!");
+            })
+            .catch((error) => {
+              console.error("Error updating profile:", error);
+            });
+        }
+      }
       // Redirect after successful login (if needed)
-      window.location.href = "/";
+      //window.location.href = "/";
     } catch (err) {
       // Handle any errors that might occur during the process
       setError(err.message);
@@ -274,7 +292,9 @@ export default function SignUpPage() {
                 }}
               >
                 <FormControl>
-                  <FormLabel htmlFor="email" sx={{ml: 1}}>Email</FormLabel>
+                  <FormLabel htmlFor="email" sx={{ ml: 1 }}>
+                    Email
+                  </FormLabel>
                   <TextField
                     value={email}
                     error={emailError}
@@ -297,7 +317,9 @@ export default function SignUpPage() {
                   <Box
                     sx={{ display: "flex", justifyContent: "space-between" }}
                   >
-                    <FormLabel htmlFor="password" sx={{ml: 1}}>Password</FormLabel>
+                    <FormLabel htmlFor="password" sx={{ ml: 1 }}>
+                      Password
+                    </FormLabel>
                   </Box>
                   <TextField
                     value={password}
@@ -376,7 +398,9 @@ export default function SignUpPage() {
                 {!signUpWithProvider && (
                   <>
                     <FormControl>
-                      <FormLabel htmlFor="firstName" sx={{ml: 1}}>First Name</FormLabel>
+                      <FormLabel htmlFor="firstName" sx={{ ml: 1 }}>
+                        First Name
+                      </FormLabel>
                       <TextField
                         value={firstName}
                         id="firstName"
@@ -388,7 +412,9 @@ export default function SignUpPage() {
                       />
                     </FormControl>
                     <FormControl>
-                      <FormLabel htmlFor="lastName" sx={{ml: 1}}>Last Name</FormLabel>
+                      <FormLabel htmlFor="lastName" sx={{ ml: 1 }}>
+                        Last Name
+                      </FormLabel>
                       <TextField
                         value={lastName}
                         id="lastName"
@@ -402,7 +428,9 @@ export default function SignUpPage() {
                   </>
                 )}
                 <FormControl>
-                  <FormLabel htmlFor="username" sx={{ml: 1}}>Username</FormLabel>
+                  <FormLabel htmlFor="username" sx={{ ml: 1 }}>
+                    Username
+                  </FormLabel>
                   <TextField
                     value={username}
                     id="username"
