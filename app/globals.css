@@ -1,6 +1,25 @@
 
-* {
+/** {
   box-sizing: border-box;
   padding: 0;
   margin: 0;
+}*/
+
+html, body {
+  height: 100%; /* make sure your body takes at least the full height of the viewport */
+  margin: 0;
+  display: flex;
+  flex-direction: column; /* stack content vertically */
+}
+
+.content {
+  flex: 1; /* allows the content area to expand to fill available space */
+  padding: 20px;
+  display: flex;
+  flex-direction: column; /* ensure content in this div is also stacked vertically */
+}
+
+.footer {
+  flex-shrink: 0; /* ensures the footer does not shrink */
+  width: 100%; /* ensures the footer extends full width */
 }
