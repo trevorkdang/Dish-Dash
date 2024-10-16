@@ -1,54 +1,71 @@
 .footer {
     display: flex;
     justify-content: space-between;
-    align-items: center;
-    padding: 20px 10%;  /* Adjust padding to give more room on the sides */
+    align-items: center; /* Center vertically */
+    padding: 20px 5%;  /* Reduce padding for more compact footer */
     background-color: #f0f0f0;
     font-family: Arial, sans-serif;
-    width: 100%; /* Ensure the footer takes the full width */
+    width: 100%;
+}
+
+.footer-logo {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
 }
 
 .footer-logo img {
-    width: 100px;
+    width: 80px; /* Reduce logo size slightly */
+    margin-right: 20px; /* Reduce space between logo and columns */
 }
 
 .footer-links {
     display: flex;
-    width: 100%;
-    justify-content: space-between; /* Change to space-between for better distribution */
-    align-items: center;
+    flex: 1;
+    justify-content: space-between;
+    align-items: flex-start;
 }
 
 .footer-column {
-    flex: 1;  /* Give each column equal opportunity to use the available space */
+    flex: 1;
+    min-width: 150px; /* Set a minimum width to avoid columns expanding too much */
     display: flex;
     flex-direction: column;
-    align-items: center;
-    padding: 0 20px; /* Add padding to each column if needed */
+    align-items: flex-start;
+    padding: 0 10px; /* Reduce padding between columns */
 }
 
 .footer-column h4 {
-    margin-bottom: 10px; /* gives a little space between the header and the list */
+    margin-bottom: 10px; /* Slightly reduce space between title and links */
+    font-size: 1rem; /* Reduce font size of the title */
+    font-weight: bold;
+    text-align: left;
 }
 
 .footer-column ul {
-    list-style-type: none; /* removes bullet points */
+    list-style-type: none;
     padding: 0;
     margin: 0;
+}
+
+.footer-column li {
+    margin-bottom: 8px; /* Slightly reduce space between links */
 }
 
 .footer-column li a {
     text-decoration: none;
     color: #333;
-    line-height: 1.5;
-    display: inline-block; /* Ensure each link and text follow one another */
+    line-height: 1.4;
+    display: flex;
     align-items: center;
+    font-size: 0.85rem; /* Make link text smaller */
 }
 
 .footer-column li a:hover {
-    color: #007bff; /* Optional hover effect */
+    color: #007bff;
 }
 
 .footer-column li a img {
-    margin-right: 5px; /* space between icon and text */
+    margin-right: 8px;
 }
